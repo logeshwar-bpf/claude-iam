@@ -24,6 +24,24 @@ app.use((req, res, next) => {
   next();
 });
 
+// Rate limiting middleware
+const requestCounts = new Map();
+function rateLimitMiddleware(req, res, next) {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const maxRequests = 30;
+
+  const userHistory = (requestCounts.get(ip) || []).filter((ts) => now - ts < windowMs);
+  if (userHistory.length >= maxRequests) {
+    return res.status(429).json({ error: 'Too many requests. Please try again later.' });
+  }
+
+  userHistory.push(now);
+  requestCounts.set(ip, userHistory);
+  next();
+}
+
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`[Claude Enterprise API] ${req.method} ${req.url}`);
@@ -89,7 +107,7 @@ function authMiddleware(req, res, next) {
 }
 
 // ─── Plan Provisioning Endpoint ───
-app.post('/api/users/:id/plan', (req, res) => {
+app.post('/api/users/:id/plan', rateLimitMiddleware, (req, res) => {
   try {
     const userId = req.params.id;
     const { newPlan, seats, billingCycle, notes, adminUser } = req.body;
@@ -124,7 +142,7 @@ app.get('/api/drift', (req, res) => {
   }
 });
 
-app.post('/api/drift/:id/resolve', (req, res) => {
+app.post('/api/drift/:id/resolve', rateLimitMiddleware, (req, res) => {
   try {
     const { status = 'resolved' } = req.body;
     const alert = store.resolveDriftAlert(req.params.id, status);
