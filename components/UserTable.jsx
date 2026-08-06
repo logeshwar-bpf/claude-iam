@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useRef } from 'react';
 import { getUsers } from '@/lib/api-client';
 import { Icon } from '@/components/Icons';
 
@@ -64,11 +64,17 @@ export default function UserTable({ initialData }) {
     }
   }, []);
 
+  const searchTimerRef = useRef(null);
+
   const handleSearch = (e) => {
     const val = e.target.value;
     setSearch(val);
     setCurrentPage(1);
-    load(val, selectedPlan, 1);
+
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      load(val, selectedPlan, 1);
+    }, 300);
   };
 
   const handlePlan = (plan) => {
