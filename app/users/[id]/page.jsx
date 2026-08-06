@@ -106,7 +106,12 @@ export default function UserDetailPage() {
         });
 
         if (res.success && res.user) {
-          setUser(res.user);
+          setUser((prev) => ({
+            ...res.user,
+            auditLogs: res.auditLog
+              ? [res.auditLog, ...(prev?.auditLogs || [])]
+              : (prev?.auditLogs || []),
+          }));
           setNotes('');
           showToast(`✓ Successfully granted "${selectedPlan}" to ${res.user.name}`);
         } else {
