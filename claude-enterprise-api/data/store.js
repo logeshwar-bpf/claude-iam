@@ -221,9 +221,15 @@ module.exports = {
   },
 
   resolveDriftAlert(id, status = 'resolved') {
+    const ALLOWED_STATUSES = ['resolved', 'dismissed'];
+    if (!ALLOWED_STATUSES.includes(status)) {
+      throw new Error(`Invalid status '${status}'. Must be one of: ${ALLOWED_STATUSES.join(', ')}`);
+    }
+
     const db = readDb();
     const alert = (db.driftAlerts || []).find(d => d.id === id);
-    if (!alert) throw new Error(`Drift alert ${id} not found`);
+    if (!alert) throw new Error(`Drift alert with ID ${id} not found`);
+
     alert.status = status;
     alert.resolvedAt = new Date().toISOString();
     writeDb(db);
