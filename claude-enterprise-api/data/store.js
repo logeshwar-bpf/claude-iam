@@ -43,7 +43,11 @@ function seedData() {
   return { users, auditLogs, driftAlerts };
 }
 
+let memoryCache = null;
+
 function readDb() {
+  if (memoryCache) return memoryCache;
+
   if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
   if (!fs.existsSync(DB_FILE)) {
     const data = seedData();
@@ -51,7 +55,8 @@ function readDb() {
     return data;
   }
   try {
-    return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    memoryCache = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    return memoryCache;
   } catch (err) {
     const backupFile = path.join(DB_DIR, `database.corrupt.${Date.now()}.json`);
     try { fs.renameSync(DB_FILE, backupFile); } catch (e) {}
@@ -60,6 +65,7 @@ function readDb() {
 }
 
 function writeDb(data) {
+  memoryCache = data;
   if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
   const tempFile = path.join(DB_DIR, `database.tmp.${Date.now()}`);
   fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf8');
