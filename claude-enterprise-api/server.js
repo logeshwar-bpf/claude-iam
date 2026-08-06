@@ -6,7 +6,11 @@ const store = require('./data/store');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true,
+}));
 app.use(express.json());
 
 // Request logging middleware
