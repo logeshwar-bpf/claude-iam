@@ -163,6 +163,16 @@ app.get('/api/audit-logs', (req, res) => {
   }
 });
 
+// Global error handling middleware
+app.use((err, req, res, next) => {
+  console.error('[API Error]', err);
+  const status = err.status || 500;
+  const message = process.env.NODE_ENV === 'production' && status === 500
+    ? 'Internal Server Error'
+    : err.message || 'Internal Server Error';
+  res.status(status).json({ error: message });
+});
+
 app.listen(PORT, () => {
   console.log(`\n==================================================`);
   console.log(`  ◆ CLAUDE ENTERPRISE API SERVER RUNNING`);
