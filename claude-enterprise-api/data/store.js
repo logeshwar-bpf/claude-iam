@@ -130,6 +130,11 @@ module.exports = {
   },
 
   updateUserPlan({ userId, newPlan, seats, billingCycle, notes = '', adminUser = 'admin' }) {
+    const ALLOWED_PLANS = ['Claude Pro', 'Claude Team', 'Enterprise', 'No Access'];
+    if (!ALLOWED_PLANS.includes(newPlan)) {
+      throw new Error(`Invalid plan tier: '${newPlan}'. Must be one of: ${ALLOWED_PLANS.join(', ')}`);
+    }
+
     const db = readDb();
     const idx = (db.users || []).findIndex(u => u.id === userId);
     if (idx === -1) throw new Error(`User with ID ${userId} not found`);
