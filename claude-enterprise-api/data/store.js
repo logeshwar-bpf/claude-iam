@@ -115,17 +115,18 @@ module.exports = {
       users = users.filter(u => u.plan === plan);
     }
 
+    const safeLimit = Math.max(1, Math.min(Number(limit) || 10, 100));
     const total = users.length;
-    const totalPages = Math.ceil(total / limit) || 1;
-    const p = Math.max(1, Math.min(Number(page), totalPages));
-    const start = (p - 1) * limit;
+    const totalPages = Math.ceil(total / safeLimit) || 1;
+    const p = Math.max(1, Math.min(Number(page) || 1, totalPages));
+    const start = (p - 1) * safeLimit;
 
     return {
-      users: users.slice(start, start + Number(limit)),
+      users: users.slice(start, start + safeLimit),
       total,
       page: p,
       totalPages,
-      limit: Number(limit),
+      limit: safeLimit,
       from: total === 0 ? 0 : start + 1,
       to: Math.min(start + Number(limit), total),
     };
@@ -231,17 +232,18 @@ module.exports = {
     }
     logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
+    const safeLimit = Math.max(1, Math.min(Number(limit) || 15, 100));
     const total = logs.length;
-    const totalPages = Math.ceil(total / limit) || 1;
-    const p = Math.max(1, Math.min(Number(page), totalPages));
-    const start = (p - 1) * limit;
+    const totalPages = Math.ceil(total / safeLimit) || 1;
+    const p = Math.max(1, Math.min(Number(page) || 1, totalPages));
+    const start = (p - 1) * safeLimit;
 
     return {
-      logs: logs.slice(start, start + Number(limit)),
+      logs: logs.slice(start, start + safeLimit),
       total,
       page: p,
       totalPages,
-      limit: Number(limit),
+      limit: safeLimit,
       from: total === 0 ? 0 : start + 1,
       to: Math.min(start + Number(limit), total),
     };
