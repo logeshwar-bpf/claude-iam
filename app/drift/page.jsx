@@ -100,7 +100,7 @@ export default function DriftPage() {
     });
   };
 
-  const openAlerts = alerts.filter((a) => !resolved.has(a.id));
+  const openAlerts = alerts.filter((a) => a.status === 'open' && !resolved.has(a.id));
 
   return (
     <AdminShell driftCount={openAlerts.length}>
