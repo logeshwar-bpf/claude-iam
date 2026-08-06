@@ -47,21 +47,23 @@ function readDb() {
   if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
   if (!fs.existsSync(DB_FILE)) {
     const data = seedData();
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+    writeDb(data);
     return data;
   }
   try {
     return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
   } catch (err) {
-    const data = seedData();
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-    return data;
+    const backupFile = path.join(DB_DIR, `database.corrupt.${Date.now()}.json`);
+    try { fs.renameSync(DB_FILE, backupFile); } catch (e) {}
+    throw new Error(`Database JSON file is corrupted. Backed up to ${path.basename(backupFile)}`);
   }
 }
 
 function writeDb(data) {
   if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+  const tempFile = path.join(DB_DIR, `database.tmp.${Date.now()}`);
+  fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf8');
+  fs.renameSync(tempFile, DB_FILE);
 }
 
 module.exports = {
