@@ -1,6 +1,11 @@
+'use client';
+
+import { useActionState } from 'react';
 import { login } from './actions';
 
 export default function LoginPage() {
+  const [state, formAction, isPending] = useActionState(login, null);
+
   return (
     <div className="center-screen">
       <div className="signin-card">
@@ -24,7 +29,13 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <form action={login} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {state?.error && (
+          <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, color: '#ef4444', fontSize: 13, textAlign: 'center' }}>
+            {state.error}
+          </div>
+        )}
+
+        <form action={formAction} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <label className="field">
             <span>Username</span>
             <input
@@ -49,14 +60,10 @@ export default function LoginPage() {
             />
           </label>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 4 }}>
-            Sign in
+          <button type="submit" disabled={isPending} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 4 }}>
+            {isPending ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
-
-        <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600 }}>
-          Default: admin / admin123
-        </p>
       </div>
     </div>
   );
