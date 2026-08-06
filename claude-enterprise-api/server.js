@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const store = require('./data/store');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4001;
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:3000';
 app.use(cors({
