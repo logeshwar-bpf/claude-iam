@@ -168,7 +168,14 @@ export default function AuditLogsPage() {
               >
                 ‹
               </button>
-              {Array.from({ length: Math.min(data.totalPages, 7) }, (_, i) => i + 1).map((p) => (
+              {(() => {
+                const totalP = data.totalPages || 1;
+                const startP = Math.max(1, Math.min(currentPage - 3, Math.max(1, totalP - 6)));
+                const endP = Math.min(totalP, Math.max(startP + 6, 1));
+                const pages = [];
+                for (let p = startP; p <= endP; p++) pages.push(p);
+                return pages;
+              })().map((p) => (
                 <button
                   key={p}
                   className={`page-btn${currentPage === p ? ' active' : ''}`}
