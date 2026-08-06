@@ -38,9 +38,11 @@ const ACTION_TEXT = {
 };
 
 const DRIFT_LABEL = {
-  unmanaged:    'Access granted outside the tool',
-  missing:      'Provisioned access no longer present',
-  role_mismatch:'Plan does not match directory record',
+  unmanaged:        'Access granted outside the tool',
+  missing:          'Provisioned access no longer present',
+  role_mismatch:    'Plan does not match directory record',
+  orphaned:         'User account removed from directory',
+  over_provisioned: 'User has more seats than allocated',
 };
 
 // ─── Dummy data (used when dummy server is not running) ───────────────────────
