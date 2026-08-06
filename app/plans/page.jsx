@@ -80,8 +80,9 @@ export default function PlansPage() {
     fetchDashboardStatsAction().then(setStats);
   }, []);
 
-  const dist = stats?.distribution ?? {};
-  const total = stats?.totalUsers || 1;
+  const innerStats = stats?.stats ?? stats;
+  const dist = innerStats?.distribution ?? {};
+  const total = innerStats?.totalUsers || 1;
 
   return (
     <AdminShell>
