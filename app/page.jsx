@@ -81,18 +81,27 @@ const PLAN_COLORS = {
 
 export default function DashboardPage() {
   const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Try the dummy server first, fall back to local data
-    fetch('http://localhost:4000/api/dashboard')
-      .then((r) => r.json())
-      .then(setData)
-      .catch(() => setData(FALLBACK));
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    fetch(`${baseUrl}/dashboard`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP error ${r.status}`);
+        return r.json();
+      })
+      .then((d) => {
+        setData(d);
+        setError(null);
+      })
+      .catch((err) => {
+        setError('Unable to fetch live dashboard metrics from API');
+      });
   }, []);
 
-  const stats = data?.stats ?? FALLBACK.stats;
-  const drift = data?.drift ?? FALLBACK.drift;
-  const activity = data?.activity ?? FALLBACK.activity;
+  const stats = data?.stats ?? { totalUsers: 0, activePlans: 0, noAccess: 0, driftAlerts: 0, pendingProvisions: 0, distribution: {} };
+  const drift = data?.drift ?? [];
+  const activity = data?.activity ?? [];
   const dist = stats.distribution ?? {};
   const total = stats.totalUsers || 1;
 

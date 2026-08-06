@@ -68,11 +68,11 @@ export default function DriftPage() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    // Try dummy server first
-    fetch('http://localhost:4000/api/drift-alerts')
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    fetch(`${baseUrl}/drift-alerts`)
       .then((r) => r.json())
       .then((data) => setAlerts(data.alerts ?? data))
-      .catch(() => setAlerts(DUMMY_ALERTS));
+      .catch(() => setAlerts([]));
   }, []);
 
   const showToast = (msg) => {
@@ -83,7 +83,8 @@ export default function DriftPage() {
   const handleResolve = (id, action) => {
     startTransition(async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/drift-alerts/${id}/resolve`, {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+        const res = await fetch(`${baseUrl}/drift-alerts/${id}/resolve`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: action }),
