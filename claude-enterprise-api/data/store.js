@@ -148,6 +148,18 @@ module.exports = {
       throw new Error(`Invalid plan tier: '${newPlan}'. Must be one of: ${ALLOWED_PLANS.join(', ')}`);
     }
 
+    const ALLOWED_CYCLES = ['Monthly', 'Annual', 'Permanent', 'N/A'];
+    if (billingCycle && !ALLOWED_CYCLES.includes(billingCycle)) {
+      throw new Error(`Invalid billingCycle '${billingCycle}'. Must be one of: ${ALLOWED_CYCLES.join(', ')}`);
+    }
+
+    if (seats !== undefined && seats !== null) {
+      const parsedSeats = Number(seats);
+      if (!Number.isInteger(parsedSeats) || parsedSeats < 0) {
+        throw new Error(`Seats must be a non-negative integer. Received: ${seats}`);
+      }
+    }
+
     const db = readDb();
     const idx = (db.users || []).findIndex(u => u.id === userId);
     if (idx === -1) throw new Error(`User with ID ${userId} not found`);
@@ -157,11 +169,15 @@ module.exports = {
     const nowIso = new Date().toISOString();
     const status = newPlan === 'No Access' ? 'Revoked' : 'Active';
 
+    const finalSeats = (seats !== undefined && seats !== null)
+      ? Math.floor(Number(seats))
+      : newPlan === 'Claude Team' ? 5 : newPlan === 'Enterprise' ? 25 : (newPlan === 'No Access' ? 0 : 1);
+
     const updatedUser = {
       ...user,
       plan: newPlan,
       status,
-      seats: seats ? Number(seats) : newPlan === 'Claude Team' ? 5 : newPlan === 'Enterprise' ? 25 : (newPlan === 'No Access' ? 0 : 1),
+      seats: finalSeats,
       billingCycle: billingCycle || user.billingCycle || 'Monthly',
       updatedAt: nowIso,
       grantedAt: oldPlan !== newPlan ? nowIso : user.grantedAt,
