@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const store = require('./data/store');
 
 const app = express();
@@ -52,6 +53,26 @@ app.get('/api/users/:id', (req, res) => {
   }
 });
 
+const JWT_SECRET = process.env.JWT_SECRET || 'claude-enterprise-api-secret-key-2026';
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required in production');
+}
+
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Authorization header missing' });
+  }
+  const token = authHeader.replace(/^Bearer\s+/, '');
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
 // ─── Plan Provisioning Endpoint ───
 app.post('/api/users/:id/plan', (req, res) => {
   try {
@@ -60,7 +81,8 @@ app.post('/api/users/:id/plan', (req, res) => {
     if (!newPlan) {
       return res.status(400).json({ error: 'newPlan parameter is required' });
     }
-    const result = store.updateUserPlan({ userId, newPlan, seats, billingCycle, notes, adminUser });
+    const actor = adminUser || req.user?.username || req.user?.email || 'admin';
+    const result = store.updateUserPlan({ userId, newPlan, seats, billingCycle, notes, adminUser: actor });
     res.json({ success: true, user: result.user, auditLog: result.auditLog });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
