@@ -169,7 +169,20 @@ module.exports = {
 
     db.users[idx] = updatedUser;
 
-    const action = oldPlan === 'No Access' ? 'PLAN_GRANTED' : newPlan === 'No Access' ? 'PLAN_REVOKED' : 'PLAN_CHANGED';
+    const tierRank = { 'No Access': 0, 'Claude Pro': 1, 'Claude Team': 2, Enterprise: 3 };
+    const oldRank = tierRank[oldPlan] ?? 0;
+    const newRank = tierRank[newPlan] ?? 0;
+
+    let action = 'PLAN_CHANGED';
+    if (oldPlan === 'No Access' && newPlan !== 'No Access') {
+      action = 'PLAN_GRANTED';
+    } else if (newPlan === 'No Access' && oldPlan !== 'No Access') {
+      action = 'PLAN_REVOKED';
+    } else if (newRank > oldRank) {
+      action = 'PLAN_UPGRADE';
+    } else if (newRank < oldRank) {
+      action = 'PLAN_DOWNGRADE';
+    }
     const auditLog = {
       id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       timestamp: nowIso,
