@@ -181,7 +181,7 @@ export default function UserDetailPage() {
                 </div>
                 <div style={{ fontSize: 17, fontWeight: 800, color: col.fg, marginTop: 4 }}>{user.plan}</div>
                 <div style={{ fontSize: 11.5, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>
-                  {user.billingCycle || 'N/A'} · {user.seats || 1} seat{user.seats !== 1 ? 's' : ''}
+                  {user.billingCycle || 'N/A'} · {(user.seats || 1)} seat{(user.seats || 1) !== 1 ? 's' : ''}
                 </div>
               </div>
             </div>
