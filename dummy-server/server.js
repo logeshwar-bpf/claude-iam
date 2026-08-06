@@ -110,22 +110,38 @@ app.post('/api/users/:id/provision', (req, res) => {
   if (userIdx === -1) return res.status(404).json({ error: 'User not found' });
 
   const user = USERS[userIdx];
-  const { newPlan, seats, notes } = req.body;
+  const { newPlan, seats, billingCycle, notes } = req.body;
+
+  const ALLOWED_PLANS = ['Enterprise', 'Claude Team', 'Claude Pro', 'No Access'];
+  if (!newPlan || !ALLOWED_PLANS.includes(newPlan)) {
+    return res.status(400).json({ error: 'Invalid plan tier' });
+  }
+
   const oldPlan = user.plan;
   const ts = new Date().toISOString();
+  const validSeats = Math.max(1, Number(seats) || 1);
+  const validCycle = billingCycle === 'monthly' ? 'monthly' : 'annual';
 
-  USERS[userIdx] = { ...user, plan: newPlan, status: newPlan === 'No Access' ? 'Revoked' : 'Active', updatedAt: ts };
+  USERS[userIdx] = {
+    ...user,
+    plan: newPlan,
+    seats: validSeats,
+    billingCycle: validCycle,
+    status: newPlan === 'No Access' ? 'Revoked' : 'Active',
+    updatedAt: ts
+  };
 
   const log = {
     id: `log_${Date.now()}`,
     timestamp: ts,
-    adminUser: 'admin',
+    adminUser: req.user?.username || 'admin',
     targetUserId: user.id,
     targetUserName: user.name,
     targetUserEmail: user.email,
     action: oldPlan === 'No Access' ? 'PLAN_GRANTED' : newPlan === 'No Access' ? 'PLAN_REVOKED' : 'PLAN_CHANGED',
-    oldPlan, newPlan,
-    notes: notes || `Plan changed from ${oldPlan} to ${newPlan}`,
+    oldPlan,
+    newPlan,
+    notes: notes || `Plan changed from ${oldPlan} to ${newPlan} (${validSeats} seats, ${validCycle})`,
   };
   AUDIT_LOGS.unshift(log);
 
