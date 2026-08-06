@@ -1,10 +1,44 @@
 const express = require('express');
 const cors = require('cors');
+const jsonwebtoken = require('jsonwebtoken');
 let { USERS, AUDIT_LOGS, DRIFT_ALERTS, PLANS } = require('./data');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'claude-plan-provisioning-secret-key-2026';
+const ALLOWED_ORIGIN = process.env.APP_URL || 'http://localhost:3000';
+
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [ALLOWED_ORIGIN, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+}));
 app.use(express.json());
+
+function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  let token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+  if (!token && req.headers.cookie) {
+    const cookies = Object.fromEntries(req.headers.cookie.split('; ').map(c => c.split('=')));
+    token = cookies.session;
+  }
+
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized: Token required' });
+  }
+
+  try {
+    const decoded = jsonwebtoken.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
+  }
+}
+
+// Require auth on all non-GET routes
+app.use((req, res, next) => {
+  if (req.method === 'GET') return next();
+  requireAuth(req, res, next);
+});
 
 // ─── Health ───────────────────────────────────────────────────────────────────
 app.get('/api/health', (_, res) => res.json({ status: 'ok', server: 'claude-plan-dummy-api', version: '1.0.0' }));
