@@ -83,16 +83,20 @@ export default function DriftPage() {
   const handleResolve = (id, action) => {
     startTransition(async () => {
       try {
-        await fetch(`http://localhost:4000/api/drift-alerts/${id}/resolve`, {
+        const res = await fetch(`http://localhost:4000/api/drift-alerts/${id}/resolve`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: action }),
         });
+        if (res.ok) {
+          setResolved((prev) => new Set([...prev, id]));
+          showToast(action === 'resolved' ? '✓ Alert remediated' : '✓ Alert acknowledged');
+        } else {
+          showToast('❌ Failed to resolve alert');
+        }
       } catch (e) {
-        // dummy server may not be running — resolve locally
+        showToast('❌ Failed to communicate with server');
       }
-      setResolved((prev) => new Set([...prev, id]));
-      showToast(action === 'resolved' ? '✓ Alert remediated' : '✓ Alert acknowledged');
     });
   };
 
