@@ -13,6 +13,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Enforce application/json for POST/PUT/PATCH
+app.use((req, res, next) => {
+  if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+    const contentType = req.headers['content-type'];
+    if (!contentType || !contentType.includes('application/json')) {
+      return res.status(415).json({ error: 'Unsupported Media Type: Content-Type must be application/json' });
+    }
+  }
+  next();
+});
+
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`[Claude Enterprise API] ${req.method} ${req.url}`);
