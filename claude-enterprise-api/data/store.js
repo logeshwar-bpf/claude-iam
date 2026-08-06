@@ -103,9 +103,13 @@ module.exports = {
     const db = readDb();
     let users = db.users || [];
 
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
-      users = users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q));
+    if (typeof search === 'string' && search.trim()) {
+      const q = search.slice(0, 100).toLowerCase().trim();
+      users = users.filter(u =>
+        (u.name || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q) ||
+        (u.role || '').toLowerCase().includes(q)
+      );
     }
     if (plan !== 'All') {
       users = users.filter(u => u.plan === plan);
@@ -215,13 +219,13 @@ module.exports = {
   getAuditLogs({ search = '', page = 1, limit = 15 }) {
     const db = readDb();
     let logs = db.auditLogs || [];
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
+    if (typeof search === 'string' && search.trim()) {
+      const q = search.slice(0, 100).toLowerCase().trim();
       logs = logs.filter(l =>
-        l.targetUserName.toLowerCase().includes(q) ||
-        l.targetUserEmail.toLowerCase().includes(q) ||
-        l.adminUser.toLowerCase().includes(q) ||
-        l.action.toLowerCase().includes(q) ||
+        (l.targetUserName || '').toLowerCase().includes(q) ||
+        (l.targetUserEmail || '').toLowerCase().includes(q) ||
+        (l.adminUser || '').toLowerCase().includes(q) ||
+        (l.action || '').toLowerCase().includes(q) ||
         (l.notes || '').toLowerCase().includes(q)
       );
     }
