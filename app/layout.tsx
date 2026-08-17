@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import LiveBackground from '../components/LiveBackground';
 
 export const metadata: Metadata = {
   title: 'Claude Plan Provisioning — Anthropic Internal',
@@ -13,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Restore saved theme before first paint — prevents flash */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('iam-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}`,
+            __html: `(function(){try{var t=localStorage.getItem('iam-theme');if(t){document.documentElement.dataset.theme=t}var c=localStorage.getItem('iam-sidebar-collapsed');if(c==='true'){document.documentElement.dataset.sidebarCollapsed='true'}}catch(e){}})()`,
           }}
         />
         <link
@@ -30,7 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body suppressHydrationWarning>
+        <LiveBackground />
+        {children}
+      </body>
     </html>
   );
 }
